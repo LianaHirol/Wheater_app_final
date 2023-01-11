@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <title>Weather App</title>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="weather-app">
+        <form class="search-form" id="search-form">
+          <div class="row">
+            <div class="col-6">
+              <input
+                type="search"
+                placeholder="Type a city.."
+                autofocus="on"
+                autocomplete="off"
+                id="city-input"
+                class="form-control shadow-sm"
+              />
+            </div>
+            <div class="col-3">
+              <input
+                type="submit"
+                value="Search"
+                class="form-control btn btn-primary shadow-sm w-100"
+              />
+            </div>
+            <div class="col-3">
+              <button
+                class="btn btn-success w-100"
+                id="current-location-button"
+              >
+                Current
+              </button>
+            </div>
+          </div>
+        </form>
+        <h1 id="city"></h1>
+        <ul>
+          <li id="date"></li>
+          <li id="description"></li>
+        </ul>
+        <div class="row">
+          <div class="col-6">
+            <div class="clearfix">
+              <div class="float-left">
+                <img
+                  src="https://ssl.gstatic.com/onebox/weather/64/cloudy.png"
+                  alt=""
+                  width="52"
+                />
+                <span class="temperature" id="temperature"></span
+                ><span class="units">°C</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <ul>
+              <li>Humidity: <span id="humidity"></span>%</li>
+              <li>Wind: <span id="wind"></span> km/h</li>
+            </ul>
+          </div>
+          <div class="weather-forecast">
+            <div class="row">
+              <div class="col-6">
+                <div class="weather-forecast-date">Thu</div>
+                <img
+                  src="https://ssl.gstatic.com/onebox/weather/64/cloudy.png"
+                  alt=""
+                  width="42"
+                />
+                <div class="weather-forecast-temperatures">
+                  <span class="weather-forecast-temperature-max"> 10°</span>
+                  <span class="weather-forecast-temperature-min"> 5°</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      function formatDate(timestamp) {
+        let date = new Date(timestamp);
+        let hours = date.getHours();
+        if (hours < 10) {
+          hours = `0${hours}`;
+        }
+        let minutes = date.getMinutes();
+        if (minutes < 10) {
+          minutes = `0${minutes}`;
+        }
+
+        let dayIndex = date.getDay();
+        let days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ];
+        let day = days[dayIndex];
+
+        return `${day} ${hours}:${minutes}`;
+      }
+      function displayForecast() {
+        let forecastElement = document.querySelector("#forecast");
+        let forecastHTML = `<div class="row">`;
+        let days = ["Thu", "Fri", "Sat", "Sun"];
+
+        days.forEach(function (day) {
+          forecastHTML =
+            forecastHTML +
+            `
+      <div class="col-6">
+        <div class="weather-forecast-date">${day}</div>
+        <img
+        src="https://ssl.gstatic.com/onebox/weather/64/cloudy.png"
+         alt=""
+          width="42"
+        />
+        <div class="weather-forecast-temperatures">
+          <span class="weather-forecast-temperature-max"> 18° </span>
+          <span class="weather-forecast-temperature-min"> 12° </span>
+        </div>
+      </div>
+  `;
+        });
+
+        forecastHTML = forecastHTML + `</div>`;
+        forecastElement.innerHTML = forecastHTML;
+        console.log(forecastHTML);
+      }
+      function displayWeatherCondition(response) {
+        document.querySelector("#city").innerHTML = response.data.name;
+        document.querySelector("#temperature").innerHTML = Math.round(
+          response.data.main.temp
+        );
+
+        document.querySelector("#humidity").innerHTML =
+          response.data.main.humidity;
+        document.querySelector("#wind").innerHTML = Math.round(
+          response.data.wind.speed
+        );
+        document.querySelector("#description").innerHTML =
+          response.data.weather[0].main;
+      }
+
+      function searchCity(city) {
+        let apiKey = "5f472b7acba333cd8a035ea85a0d4d4c";
+        let apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+        axios.get(apiUrl).then(displayWeatherCondition);
+      }
+
+      function handleSubmit(event) {
+        event.preventDefault();
+        let city = document.querySelector("#city-input").value;
+        searchCity(city);
+      }
+
+      function searchLocation(position) {
+        let apiKey = "5f472b7acba333cd8a035ea85a0d4d4c";
+        let apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${position.coords.latitude}&lon=${position.coords.longitude}&appid=${apiKey}&units=metric`;
+
+        axios.get(apiUrl).then(displayWeatherCondition);
+      }
+
+      function getCurrentLocation(event) {
+        event.preventDefault();
+        navigator.geolocation.getCurrentPosition(searchLocation);
+      }
+      let searchForm = document.querySelector("#search-form");
+      searchForm.addEventListener("submit", handleSubmit);
+
+      let currentLocationButton = document.querySelector(
+        "#current-location-button"
+      );
+      currentLocationButton.addEventListener("click", getCurrentLocation);
+
+      searchCity("New York");
+      displayForecast();
+    </script>
+    <style>
+      body {
+        font-family: arial, sans-serif;
+        background: rgb(210, 234, 240);
+      }
+
+      h1 {
+        color: #1950b6;
+        font-size: 34px;
+        font-weight: 100;
+        line-height: 28px;
+        margin-bottom: 5px;
+        margin: 15px;
+      }
+
+      ul {
+        margin: 5;
+        padding: 0;
+      }
+
+      li {
+        list-style: none;
+        margin: 5;
+        padding: 0;
+
+        color: rgb(135, 135, 135);
+        font-size: 16px;
+        font-weight: 60;
+        line-height: 19px;
+      }
+
+      li:first-letter {
+        text-transform: capitalize;
+      }
+
+      .weather-app-wrapper {
+        max-width: 600px;
+        margin: 30px auto;
+      }
+
+      .weather-app {
+        padding: 20px;
+        border: 1px solid #69a3f0;
+        border-radius: 5px;
+        background-color: lightyellow;
+      }
+
+      .overview {
+        margin-bottom: 20px;
+      }
+
+      .weather-temperature img {
+        margin-right: 5px;
+        height: 64px;
+        width: 64px;
+      }
+
+      .weather-temperature strong {
+        color: rgb(33, 33, 33);
+        font-size: 64px;
+        line-height: 1;
+        font-weight: 400;
+      }
+
+      .weather-temperature .units {
+        position: relative;
+        font-size: 20px;
+        top: -34px;
+      }
+
+      .weather-temperature .active {
+        color: rgb(33, 33, 33);
+        cursor: default;
+      }
+
+      .weather-temperature .active:hover {
+        text-decoration: none;
+      }
+
+      .weather-forecast {
+        margin-top: 20px;
+        text-align: center;
+        color: #000;
+      }
+
+      .weather-forecast-date {
+        font-size: 16px;
+        opacity: 0.5;
+      }
+
+      .weather-forecast-temperature-min {
+        opacity: 0.5;
+      }
+
+      .weather-forecast-temperatures {
+        font-size: 13px;
+      }
+    </style>
+
+    <a href="https://github.com/LianaHirol?tab=repositories">
+      Open-source code by Liana Hirol
+    </a>
+  </body>
+</html>
